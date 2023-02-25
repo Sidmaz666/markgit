@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "watch": true,
+    "lib": ["dom","ES2017"],
+    "outFile": "./build/main.js"
+  }
+}
