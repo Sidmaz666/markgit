@@ -38,6 +38,13 @@ Or Download the `markgit.js` file from the `dist` folder and add it locally.
 	data => console.log(data)
        )
 ```
+3. `search` -> Search For Markdown File in a Repo via `Keyword`. It reqiures three parameter as ***string***, **Search Keyword** , **Github Username** and the name of the **Repo** . It returns an Array Object with `status`, `total_count` and an Array containing matched files with `filename` and `file_path`.
+
+```javascript
+      MarkGit.search(search_keyword,username,reponame).then(
+	data => console.log(data)
+       )
+```
 
 # Use With `npm` in `React, Vue, Angular`
 
