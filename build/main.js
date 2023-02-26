@@ -80,13 +80,19 @@ async function search(keyword, user_name, repo_name) {
         const returnDataItems = [];
         if (data.total_count > 0) {
             data.items.forEach((item) => {
-                returnDataItems.push({
-                    filename: item.name,
-                    file_path: item.path,
-                });
+                if (/([a-zA-Z0-9\s_\\.\-:])+(.md)$/gi.test(item.name)) {
+                    returnDataItems.push({
+                        filename: item.name,
+                        file_path: item.path,
+                    });
+                }
+                else {
+                    status = "false";
+                    return { status: status, error: "No Markdown File Found" };
+                }
             });
             status = 'true';
-            returnData.push({ status: status, total_count: data.total_count, }, returnDataItems);
+            returnData.push({ status: status, total_count: returnDataItems.length }, returnDataItems);
             return returnData;
         }
         else {

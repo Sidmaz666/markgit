@@ -7,7 +7,12 @@
     "build:js": "tsc",
     "build:bundle": "webpack"
   },
-  "keywords": ["github","markdown","github database","markdown to html"],
+  "keywords": [
+    "github",
+    "markdown",
+    "github database",
+    "markdown to html"
+  ],
   "author": "Sidmaz666",
   "license": "ISC",
   "devDependencies": {
@@ -25,5 +30,13 @@
     "markdown-it-mark": "^3.0.1",
     "markdown-it-sub": "^1.0.0",
     "markdown-it-sup": "^1.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sidmaz666/markgit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Sidmaz666/markgit/issues"
+  },
+  "homepage": "https://github.com/Sidmaz666/markgit#readme"
 }
