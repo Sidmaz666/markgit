@@ -66,7 +66,42 @@ async function getContent(user_name, repo_name, file_path) {
         return { status: status, error: "Invalid user name or repo name" };
     }
 }
+async function search(keyword, user_name, repo_name) {
+    let status = 'false';
+    if (keyword.length == 0 || user_name.length == 0 || repo_name.length == 0) {
+        status = "false";
+        return { status: status, error: "Provide Valid Data!" };
+    }
+    try {
+        const url = `https://api.github.com/search/code?q=${keyword}+repo:${user_name}/${repo_name}`;
+        const fetch = await axios(url);
+        const data = await fetch.data;
+        const returnData = [];
+        const returnDataItems = [];
+        if (data.total_count > 0) {
+            data.items.forEach((item) => {
+                returnDataItems.push({
+                    filename: item.name,
+                    file_path: item.path,
+                });
+            });
+            status = 'true';
+            returnData.push({ status: status, total_count: data.total_count, }, returnDataItems);
+            return returnData;
+        }
+        else {
+            status = "false";
+            return { status: status, error: "Nothing Found!" };
+        }
+    }
+    catch (error) {
+        status = "false";
+        return { status: status, error: "Invalid user name or repo name" };
+    }
+    ;
+}
 module.exports = {
     getList,
     getContent,
+    search
 };
