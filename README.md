@@ -24,10 +24,10 @@ Or Download the `markgit.js` file from the `dist` folder and add it locally.
 ```
 ### Available Methods
 
-1. `getList` -> List the Markdown `.md` Files in a Repo. It reqiures two parameter as ***string***, **Github Username** and the name of the **Repo**. It returns an Array. Within the Array an Object with `status` key.
+1. `getList` -> List the Markdown `.md` Files in a Repo. It reqiures two parameter as ***string***, **Github Username** and the name of the **Repo**, Optionally it accepts a third parameter for any sub-folder in the repo. It returns an Array. Within the Array an Object with `status` key.
 
 ```javascript
-      MarkGit.getList(username,reponame).then(
+      MarkGit.getList(username,reponame,sub_folder_name).then(
 	data => console.log(data)
        )
 ```

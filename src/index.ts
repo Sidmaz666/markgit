@@ -2,12 +2,13 @@ const axios = require("axios");
 
 async function getList(
   user_name: string,
-  repo_name: string
+  repo_name: string,
+  sub_folder:string = ''
 ): Promise<any[] | object> {
   let status: string = "true";
 
   try {
-    const url = `https://api.github.com/repos/${user_name}/${repo_name}/contents`;
+    const url = `https://api.github.com/repos/${user_name}/${repo_name}/contents/${sub_folder}`;
     const fetch = await axios(url);
     const data = await fetch.data;
     let returnData = [];
