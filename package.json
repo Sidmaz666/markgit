@@ -1,6 +1,6 @@
 {
   "name": "markgit",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Use Github Repo as a Public Database to Store Markdown Files. Retrieve the Files in HTML Format. Get the List of Markdown Files From a Repo",
   "main": "./dist/markgit.js",
   "scripts": {
