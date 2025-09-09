@@ -1,6 +1,6 @@
 # markgit
 
-Use Github Repo as a Database to Store Markdown Files. Retrieve, Create, Update, and Delete Markdown Files and Folders. Get the List of Markdown Files From a Repo. Supports both **public** and **private** repositories with token authentication.
+Use Github Repo as a Database to Store Files. Retrieve, Create, Update, and Delete Markdown, JSON, and Image Files and Folders. Get the List of Files From a Repo. Supports both **public** and **private** repositories with token authentication.
 
 # Usage
 
@@ -24,7 +24,7 @@ Or Download the `markgit.js` file from the `dist` folder and add it locally.
 ```
 ### Available Methods
 
-1. `getList` -> List the Markdown `.md` Files in a Repo. It requires two parameters as ***string***, **Github Username** and the name of the **Repo**. Optionally it accepts a third parameter for any sub-folder in the repo, and a fourth parameter for **GitHub Personal Access Token** (for private repos). It returns an Array. Within the Array an Object with `status` key.
+1. `getList` -> List the supported files (`.md`, `.json`, `.jpg`, `.jpeg`, `.png`, `.gif`, `.svg`, `.webp`, `.bmp`, `.ico`) in a Repo. It requires two parameters as ***string***, **Github Username** and the name of the **Repo**. Optionally it accepts a third parameter for any sub-folder in the repo, and a fourth parameter for **GitHub Personal Access Token** (for private repos). It returns an Array. Within the Array an Object with `status` key.
 
 ```javascript
       // For public repositories
@@ -38,7 +38,11 @@ Or Download the `markgit.js` file from the `dist` folder and add it locally.
        )
 ```
 
-2. `getContent` -> Get Content of the Markdown `.md` File in a Repo. It requires three parameters as ***string***, **Github Username**, the name of the **Repo** and the **File Name or Path**. Optionally it accepts a fourth parameter for **GitHub Personal Access Token** (for private repos). It returns an Object with `status`, `content_markdown` and `content_html` key.
+2. `getContent` -> Get Content of supported files in a Repo. It requires three parameters as ***string***, **Github Username**, the name of the **Repo** and the **File Name or Path**. Optionally it accepts a fourth parameter for **GitHub Personal Access Token** (for private repos). It returns an Object with different content keys based on file type:
+
+   - **Markdown files** (`.md`): `content_raw`, `content_html`, `file_type: 'markdown'`
+   - **JSON files** (`.json`): `content_raw`, `content_json`, `file_type: 'json'`
+   - **Image files** (`.jpg`, `.png`, etc.): `content_raw`, `content_base64`, `file_type: 'image'`, `mime_type`, `download_url`
 
 ```javascript
       // For public repositories
@@ -52,7 +56,7 @@ Or Download the `markgit.js` file from the `dist` folder and add it locally.
        )
 ```
 
-3. `search` -> Search For Markdown File in a Repo via `Keyword`. It requires three parameters as ***string***, **Search Keyword**, **Github Username** and the name of the **Repo**. Optionally it accepts a fourth parameter for **GitHub Personal Access Token** (for private repos). It returns an Array Object with `status`, `total_count` and an Array containing matched files with `filename` and `file_path`.
+3. `search` -> Search For supported files in a Repo via `Keyword`. It requires three parameters as ***string***, **Search Keyword**, **Github Username** and the name of the **Repo**. Optionally it accepts a fourth parameter for **GitHub Personal Access Token** (for private repos). It returns an Array Object with `status`, `total_count` and an Array containing matched files with `filename` and `file_path`.
 
 ```javascript
       // For public repositories
@@ -66,17 +70,53 @@ Or Download the `markgit.js` file from the `dist` folder and add it locally.
        )
 ```
 
+## Supported File Types
+
+MarkGit supports the following file types:
+
+### 📝 Text Files
+- **Markdown** (`.md`) - Rendered to HTML with syntax highlighting
+- **JSON** (`.json`) - Parsed and returned as JavaScript objects
+
+### 🖼️ Image Files
+- **JPEG** (`.jpg`, `.jpeg`)
+- **PNG** (`.png`)
+- **GIF** (`.gif`)
+- **SVG** (`.svg`)
+- **WebP** (`.webp`)
+- **BMP** (`.bmp`)
+- **ICO** (`.ico`)
+
+### File Type Detection
+The library automatically detects file types and returns appropriate content:
+- **Markdown files**: `content_raw`, `content_html`, `file_type: 'markdown'`
+- **JSON files**: `content_raw`, `content_json`, `file_type: 'json'`
+- **Image files**: `content_raw`, `content_base64`, `file_type: 'image'`, `mime_type`, `download_url`
+
 ## Write Operations (Requires Token)
 
-4. `createFile` -> Create a new Markdown file in a repository. It requires **Github Username**, **Repo Name**, **File Path**, **Content**, and **GitHub Personal Access Token**. Optionally accepts a commit message. Returns an Object with `status` and `message`.
+4. `createFile` -> Create a new file in a repository. It requires **Github Username**, **Repo Name**, **File Path**, **Content**, and **GitHub Personal Access Token**. Optionally accepts a commit message. Supports `.md`, `.json`, and image files (`.jpg`, `.jpeg`, `.png`, `.gif`, `.svg`, `.webp`, `.bmp`, `.ico`). Returns an Object with `status` and `message`.
 
 ```javascript
+      // Create a markdown file
       MarkGit.createFile(username, reponame, 'new-file.md', '# New File\n\nThis is new content!', token, 'Add new file').then(
+	data => console.log(data)
+       )
+
+      // Create a JSON file
+      const jsonData = { "name": "test", "value": 123 };
+      MarkGit.createFile(username, reponame, 'config.json', JSON.stringify(jsonData, null, 2), token, 'Add config file').then(
+	data => console.log(data)
+       )
+
+      // Create an image file (base64 encoded)
+      const imageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+      MarkGit.createFile(username, reponame, 'image.png', imageBase64, token, 'Add image file').then(
 	data => console.log(data)
        )
 ```
 
-5. `updateFile` -> Update an existing Markdown file in a repository. It requires **Github Username**, **Repo Name**, **File Path**, **New Content**, and **GitHub Personal Access Token**. Optionally accepts a commit message. Returns an Object with `status` and `message`.
+5. `updateFile` -> Update an existing file in a repository. It requires **Github Username**, **Repo Name**, **File Path**, **New Content**, and **GitHub Personal Access Token**. Optionally accepts a commit message. Supports `.md`, `.json`, and image files. Returns an Object with `status` and `message`.
 
 ```javascript
       MarkGit.updateFile(username, reponame, 'existing-file.md', '# Updated File\n\nThis content has been updated!', token, 'Update file content').then(
@@ -84,7 +124,7 @@ Or Download the `markgit.js` file from the `dist` folder and add it locally.
        )
 ```
 
-6. `deleteFile` -> Delete a Markdown file from a repository. It requires **Github Username**, **Repo Name**, **File Path**, and **GitHub Personal Access Token**. Optionally accepts a commit message. Returns an Object with `status` and `message`.
+6. `deleteFile` -> Delete a file from a repository. It requires **Github Username**, **Repo Name**, **File Path**, and **GitHub Personal Access Token**. Optionally accepts a commit message. Supports `.md`, `.json`, and image files. Returns an Object with `status` and `message`.
 
 ```javascript
       MarkGit.deleteFile(username, reponame, 'file-to-delete.md', token, 'Remove unnecessary file').then(

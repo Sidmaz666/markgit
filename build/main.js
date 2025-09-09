@@ -44,6 +44,20 @@ const universalAtob = (str) => {
         throw new Error('atob is not available in this environment');
     }
 };
+// Helper function to get MIME type for image files
+const getMimeType = (extension) => {
+    const mimeTypes = {
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'svg': 'image/svg+xml',
+        'webp': 'image/webp',
+        'bmp': 'image/bmp',
+        'ico': 'image/x-icon'
+    };
+    return mimeTypes[extension || ''] || 'application/octet-stream';
+};
 async function getList(user_name, repo_name, sub_folder = '', token) {
     let status = "true";
     try {
@@ -54,7 +68,7 @@ async function getList(user_name, repo_name, sub_folder = '', token) {
         let returnData = [];
         data.forEach((obj) => {
             if (obj.type == "file" &&
-                /([a-zA-Z0-9\s_\\.\-:])+(.md)$/gi.test(obj.name)) {
+                /([a-zA-Z0-9\s_\\.\-:])+(\.(md|json|jpg|jpeg|png|gif|svg|webp|bmp|ico))$/gi.test(obj.name)) {
                 returnData.push(obj.name);
             }
         });
@@ -68,45 +82,89 @@ async function getList(user_name, repo_name, sub_folder = '', token) {
 }
 async function getContent(user_name, repo_name, file_path, token) {
     let status = "true";
-    if (!/([a-zA-Z0-9\s_\\.\-:])+(.md)$/gi.test(file_path)) {
+    if (!/([a-zA-Z0-9\s_\\.\-:])+(\.(md|json|jpg|jpeg|png|gif|svg|webp|bmp|ico))$/gi.test(file_path)) {
         status = "false";
-        return { status: status, error: "Invalid File Path" };
+        return { status: status, error: "Invalid File Path - Only .md, .json, and image files are supported" };
     }
     try {
-        const hljs = require("highlight.js");
-        const markdown_converter = require("markdown-it")({
-            html: true,
-            linkify: true,
-            typographer: true,
-            breaks: true,
-            highlight: function (str, lang) {
-                if (lang && hljs.getLanguage(lang)) {
-                    try {
-                        return ('<pre class="hljs custom-code-hljs-class"><code>' +
-                            hljs.highlight(str, { language: lang, ignoreIllegals: true })
-                                .value +
-                            "</code></pre>");
-                    }
-                    catch (__) { }
-                }
-                return ('<pre class="hljs custom-code-hljs-class"><code>' +
-                    markdown_converter.utils.escapeHtml(str) +
-                    "</code></pre>");
-            },
-        }).use(require('markdown-it-emoji'))
-            .use(require('markdown-it-deflist'))
-            .use(require('markdown-it-sub'))
-            .use(require('markdown-it-sup'))
-            .use(require('markdown-it-ins'))
-            .use(require('markdown-it-mark'))
-            .use(require('markdown-it-footnote'));
         const url = `https://api.github.com/repos/${user_name}/${repo_name}/contents/${file_path}`;
         const headers = token ? { 'Authorization': `token ${token}` } : {};
         const fetch = await axios(url, { headers });
         const data = await fetch.data;
-        const content = markdown_converter.render(universalAtob(data.content));
-        status = "true";
-        return { status: status, content_markdown: universalAtob(data.content), content_html: content };
+        const decodedContent = universalAtob(data.content);
+        // Handle different file types
+        if (file_path.toLowerCase().endsWith('.md')) {
+            // Markdown files - convert to HTML
+            const hljs = require("highlight.js");
+            const markdown_converter = require("markdown-it")({
+                html: true,
+                linkify: true,
+                typographer: true,
+                breaks: true,
+                highlight: function (str, lang) {
+                    if (lang && hljs.getLanguage(lang)) {
+                        try {
+                            return ('<pre class="hljs custom-code-hljs-class"><code>' +
+                                hljs.highlight(str, { language: lang, ignoreIllegals: true })
+                                    .value +
+                                "</code></pre>");
+                        }
+                        catch (__) { }
+                    }
+                    return ('<pre class="hljs custom-code-hljs-class"><code>' +
+                        markdown_converter.utils.escapeHtml(str) +
+                        "</code></pre>");
+                },
+            }).use(require('markdown-it-emoji'))
+                .use(require('markdown-it-deflist'))
+                .use(require('markdown-it-sub'))
+                .use(require('markdown-it-sup'))
+                .use(require('markdown-it-ins'))
+                .use(require('markdown-it-mark'))
+                .use(require('markdown-it-footnote'));
+            const content = markdown_converter.render(decodedContent);
+            status = "true";
+            return {
+                status: status,
+                content_raw: decodedContent,
+                content_html: content,
+                file_type: 'markdown',
+                file_name: file_path.split('/').pop()
+            };
+        }
+        else if (file_path.toLowerCase().endsWith('.json')) {
+            // JSON files - parse and return
+            try {
+                const jsonContent = JSON.parse(decodedContent);
+                status = "true";
+                return {
+                    status: status,
+                    content_raw: decodedContent,
+                    content_json: jsonContent,
+                    file_type: 'json',
+                    file_name: file_path.split('/').pop()
+                };
+            }
+            catch (jsonError) {
+                status = "false";
+                return { status: status, error: "Invalid JSON format" };
+            }
+        }
+        else {
+            // Image files - return base64 data and metadata
+            const fileExtension = file_path.split('.').pop()?.toLowerCase();
+            const mimeType = getMimeType(fileExtension);
+            status = "true";
+            return {
+                status: status,
+                content_raw: decodedContent,
+                content_base64: data.content,
+                file_type: 'image',
+                file_name: file_path.split('/').pop(),
+                mime_type: mimeType,
+                download_url: data.download_url
+            };
+        }
     }
     catch (error) {
         status = "false";
@@ -128,15 +186,11 @@ async function search(keyword, user_name, repo_name, token) {
         const returnDataItems = [];
         if (data.total_count > 0) {
             data.items.forEach((item) => {
-                if (/([a-zA-Z0-9\s_\\.\-:])+(.md)$/gi.test(item.name)) {
+                if (/([a-zA-Z0-9\s_\\.\-:])+(\.(md|json|jpg|jpeg|png|gif|svg|webp|bmp|ico))$/gi.test(item.name)) {
                     returnDataItems.push({
                         filename: item.name,
                         file_path: item.path,
                     });
-                }
-                else {
-                    status = "false";
-                    return { status: status, error: "No Markdown File Found" };
                 }
             });
             status = 'true';
@@ -160,9 +214,9 @@ async function createFile(user_name, repo_name, file_path, content, token, commi
         status = "false";
         return { status: status, error: "Token is required for write operations" };
     }
-    if (!/([a-zA-Z0-9\s_\\.\-:])+(.md)$/gi.test(file_path)) {
+    if (!/([a-zA-Z0-9\s_\\.\-:])+(\.(md|json|jpg|jpeg|png|gif|svg|webp|bmp|ico))$/gi.test(file_path)) {
         status = "false";
-        return { status: status, error: "Only .md files are supported" };
+        return { status: status, error: "Only .md, .json, and image files are supported" };
     }
     try {
         const url = `https://api.github.com/repos/${user_name}/${repo_name}/contents/${file_path}`;
@@ -203,9 +257,9 @@ async function updateFile(user_name, repo_name, file_path, content, token, commi
         status = "false";
         return { status: status, error: "Token is required for write operations" };
     }
-    if (!/([a-zA-Z0-9\s_\\.\-:])+(.md)$/gi.test(file_path)) {
+    if (!/([a-zA-Z0-9\s_\\.\-:])+(\.(md|json|jpg|jpeg|png|gif|svg|webp|bmp|ico))$/gi.test(file_path)) {
         status = "false";
-        return { status: status, error: "Only .md files are supported" };
+        return { status: status, error: "Only .md, .json, and image files are supported" };
     }
     try {
         const url = `https://api.github.com/repos/${user_name}/${repo_name}/contents/${file_path}`;

@@ -1,7 +1,7 @@
 {
   "name": "markgit",
   "version": "4.0.0",
-  "description": "Use Github Repo as a Database to Store Markdown Files. Retrieve, Create, Update, and Delete Markdown Files and Folders. Get the List of Markdown Files From a Repo",
+  "description": "Use Github Repo as a Database to Store Files. Retrieve, Create, Update, and Delete Markdown, JSON, and Image Files and Folders. Get the List of Files From a Repo",
   "main": "./dist/markgit-node.js",
   "module": "./dist/markgit-node.esm.js",
   "browser": "./dist/markgit.js",
@@ -13,19 +13,25 @@
     }
   },
   "scripts": {
-    "build:js": "tsc",
-    "build:bundle": "webpack"
+    "build:js": "tsc --project tsconfig.json",
+    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:bundle": "webpack",
+    "build": "npm run build:bundle"
   },
   "keywords": [
     "github",
     "markdown",
+    "json",
+    "images",
     "github database",
     "markdown to html",
     "github api",
     "file management",
     "create files",
     "update files",
-    "delete files"
+    "delete files",
+    "image files",
+    "json files"
   ],
   "author": "Sidmaz666",
   "license": "ISC",
