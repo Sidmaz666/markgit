@@ -1,4 +1,49 @@
 const axios = require("axios");
+// Polyfills for Node.js environment
+if (typeof global !== 'undefined' && typeof global.btoa === 'undefined') {
+    global.btoa = function (str) {
+        return Buffer.from(str, 'binary').toString('base64');
+    };
+}
+if (typeof global !== 'undefined' && typeof global.atob === 'undefined') {
+    global.atob = function (str) {
+        return Buffer.from(str, 'base64').toString('binary');
+    };
+}
+// Browser environment polyfills
+if (typeof window !== 'undefined' && typeof window.btoa === 'undefined') {
+    window.btoa = function (str) {
+        return Buffer.from(str, 'binary').toString('base64');
+    };
+}
+if (typeof window !== 'undefined' && typeof window.atob === 'undefined') {
+    window.atob = function (str) {
+        return Buffer.from(str, 'base64').toString('binary');
+    };
+}
+// Universal btoa/atob functions
+const universalBtoa = (str) => {
+    if (typeof btoa !== 'undefined') {
+        return btoa(str);
+    }
+    else if (typeof Buffer !== 'undefined') {
+        return Buffer.from(str, 'binary').toString('base64');
+    }
+    else {
+        throw new Error('btoa is not available in this environment');
+    }
+};
+const universalAtob = (str) => {
+    if (typeof atob !== 'undefined') {
+        return atob(str);
+    }
+    else if (typeof Buffer !== 'undefined') {
+        return Buffer.from(str, 'base64').toString('binary');
+    }
+    else {
+        throw new Error('atob is not available in this environment');
+    }
+};
 async function getList(user_name, repo_name, sub_folder = '', token) {
     let status = "true";
     try {
@@ -59,9 +104,9 @@ async function getContent(user_name, repo_name, file_path, token) {
         const headers = token ? { 'Authorization': `token ${token}` } : {};
         const fetch = await axios(url, { headers });
         const data = await fetch.data;
-        const content = markdown_converter.render(atob(data.content));
+        const content = markdown_converter.render(universalAtob(data.content));
         status = "true";
-        return { status: status, content_markdown: atob(data.content), content_html: content };
+        return { status: status, content_markdown: universalAtob(data.content), content_html: content };
     }
     catch (error) {
         status = "false";
@@ -133,7 +178,7 @@ async function createFile(user_name, repo_name, file_path, content, token, commi
         }
         const data = {
             message: commit_message || `Create ${file_path}`,
-            content: btoa(content),
+            content: universalBtoa(content),
             ...(sha && { sha: sha }) // Include sha if updating existing file
         };
         const response = await axios.put(url, data, { headers });
@@ -170,7 +215,7 @@ async function updateFile(user_name, repo_name, file_path, content, token, commi
         const sha = existingFile.data.sha;
         const data = {
             message: commit_message || `Update ${file_path}`,
-            content: btoa(content),
+            content: universalBtoa(content),
             sha: sha
         };
         const response = await axios.put(url, data, { headers });

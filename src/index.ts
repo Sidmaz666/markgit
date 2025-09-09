@@ -1,5 +1,52 @@
 const axios = require("axios");
 
+// Polyfills for Node.js environment
+if (typeof global !== 'undefined' && typeof global.btoa === 'undefined') {
+  global.btoa = function(str: string): string {
+    return Buffer.from(str, 'binary').toString('base64');
+  };
+}
+
+if (typeof global !== 'undefined' && typeof global.atob === 'undefined') {
+  global.atob = function(str: string): string {
+    return Buffer.from(str, 'base64').toString('binary');
+  };
+}
+
+// Browser environment polyfills
+if (typeof window !== 'undefined' && typeof window.btoa === 'undefined') {
+  (window as any).btoa = function(str: string): string {
+    return Buffer.from(str, 'binary').toString('base64');
+  };
+}
+
+if (typeof window !== 'undefined' && typeof window.atob === 'undefined') {
+  (window as any).atob = function(str: string): string {
+    return Buffer.from(str, 'base64').toString('binary');
+  };
+}
+
+// Universal btoa/atob functions
+const universalBtoa = (str: string): string => {
+  if (typeof btoa !== 'undefined') {
+    return btoa(str);
+  } else if (typeof Buffer !== 'undefined') {
+    return Buffer.from(str, 'binary').toString('base64');
+  } else {
+    throw new Error('btoa is not available in this environment');
+  }
+};
+
+const universalAtob = (str: string): string => {
+  if (typeof atob !== 'undefined') {
+    return atob(str);
+  } else if (typeof Buffer !== 'undefined') {
+    return Buffer.from(str, 'base64').toString('binary');
+  } else {
+    throw new Error('atob is not available in this environment');
+  }
+};
+
 async function getList(
   user_name: string,
   repo_name: string,
@@ -82,11 +129,11 @@ async function getContent(
     const fetch = await axios(url, { headers });
     const data = await fetch.data;
     const content = markdown_converter.render(
-     atob(data.content)
+     universalAtob(data.content)
     );
 
     status = "true";
-    return { status: status, content_markdown: atob(data.content), content_html: content };
+    return { status: status, content_markdown: universalAtob(data.content), content_html: content };
   } catch (error) {
     status = "false";
     return { status: status, error: "Invalid user name or repo name" };
@@ -178,7 +225,7 @@ async function createFile(
 
     const data = {
       message: commit_message || `Create ${file_path}`,
-      content: btoa(content),
+      content: universalBtoa(content),
       ...(sha && { sha: sha }) // Include sha if updating existing file
     };
 
@@ -229,7 +276,7 @@ async function updateFile(
 
     const data = {
       message: commit_message || `Update ${file_path}`,
-      content: btoa(content),
+      content: universalBtoa(content),
       sha: sha
     };
 

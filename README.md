@@ -167,9 +167,57 @@ Import/Require markgit
    const mg = require('markgit');
 ```
 
-# Note 
+# Node.js Support
 
-Since **atob** function is not available in **nodejs** (requires for base64 encoding/decoding), `markgit` is only supported in the browser.
+`markgit` now supports both **browser** and **Node.js** environments! The library automatically detects the environment and provides the necessary polyfills for base64 encoding/decoding.
+
+### Node.js Usage
+
+```javascript
+const MarkGit = require('markgit');
+
+// All functions work the same way in Node.js
+MarkGit.getList('username', 'reponame').then(data => console.log(data));
+MarkGit.getContent('username', 'reponame', 'README.md').then(data => console.log(data));
+MarkGit.search('keyword', 'username', 'reponame').then(data => console.log(data));
+
+// Write operations also work in Node.js
+const token = 'your_github_token';
+MarkGit.createFile('username', 'reponame', 'new-file.md', '# Content', token).then(data => console.log(data));
+```
+
+### Browser Usage
+
+```html
+<!-- Use the browser build -->
+<script src="./dist/markgit.js"></script>
+<script>
+  MarkGit.getList('username', 'reponame').then(data => console.log(data));
+</script>
+```
+
+### Node.js Usage
+
+```javascript
+// Use the Node.js build
+const MarkGit = require('markgit');
+// or
+const MarkGit = require('./dist/markgit-node.js');
+
+MarkGit.getList('username', 'reponame').then(data => console.log(data));
+```
+
+### Build Files
+
+The library provides two builds:
+- **`markgit.js`** - Browser build (includes all dependencies, ~1MB)
+- **`markgit-node.js`** - Node.js build (external dependencies, ~6KB)
+
+### Environment Detection
+
+The library automatically detects whether it's running in a browser or Node.js environment and uses the appropriate base64 encoding/decoding methods:
+- **Browser**: Uses native `btoa`/`atob` functions
+- **Node.js**: Uses `Buffer` for base64 operations
 
 
         
