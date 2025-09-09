@@ -7,15 +7,15 @@
   <script>
     // Example with public repository
     console.log('Testing public repository...');
-    MarkGit.getList('sidmaz666','anime').then(
+    MarkGit.getList('sidmaz666','markgit').then(
 	  data => console.log('Public repo list:', data)
 	)
-    MarkGit.getContent('sidmaz666','anime','README.md').then(
+    MarkGit.getContent('sidmaz666','markgit','README.md').then(
 	  data => console.log('Public repo content:', data)
 	)
-    MarkGit.search('anime','sidmaz666','anime').then(
-	  data => console.log('Public repo search:', data)
-	)
+  //   MarkGit.search('markgit','Sidmaz666','markgit').then(
+	//   data => console.log('Public repo search:', data)
+	// )
 
     // Example with private repository and write operations (uncomment and add your token)
     /*

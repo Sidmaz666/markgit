@@ -3,7 +3,15 @@
   "version": "3.0.0",
   "description": "Use Github Repo as a Database to Store Markdown Files. Retrieve, Create, Update, and Delete Markdown Files and Folders. Get the List of Markdown Files From a Repo",
   "main": "./dist/markgit-node.js",
+  "module": "./dist/markgit-node.esm.js",
   "browser": "./dist/markgit.js",
+  "exports": {
+    ".": {
+      "import": "./dist/markgit-node.esm.js",
+      "require": "./dist/markgit-node.js",
+      "browser": "./dist/markgit.esm.js"
+    }
+  },
   "scripts": {
     "build:js": "tsc",
     "build:bundle": "webpack"
@@ -23,6 +31,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^24.3.1",
+    "ts-loader": "^9.5.4",
     "typescript": "^5.9.2",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1"

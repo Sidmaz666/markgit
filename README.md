@@ -188,18 +188,40 @@ MarkGit.createFile('username', 'reponame', 'new-file.md', '# Content', token).th
 
 ### Browser Usage
 
+#### Script Tag (UMD)
 ```html
-<!-- Use the browser build -->
+<!-- Use the browser UMD build -->
 <script src="./dist/markgit.js"></script>
 <script>
   MarkGit.getList('username', 'reponame').then(data => console.log(data));
 </script>
 ```
 
+#### ES6 Modules
+```html
+<!-- Use the browser ES6 module build -->
+<script type="module">
+  import MarkGit from './dist/markgit.esm.js';
+  
+  MarkGit.getList('username', 'reponame').then(data => console.log(data));
+</script>
+```
+
+#### Named Imports
+```html
+<script type="module">
+  import { getList, getContent, createFile } from './dist/markgit.esm.js';
+  
+  getList('username', 'reponame').then(data => console.log(data));
+  getContent('username', 'reponame', 'README.md').then(data => console.log(data));
+</script>
+```
+
 ### Node.js Usage
 
+#### CommonJS (require)
 ```javascript
-// Use the Node.js build
+// Use the Node.js CommonJS build
 const MarkGit = require('markgit');
 // or
 const MarkGit = require('./dist/markgit-node.js');
@@ -207,11 +229,36 @@ const MarkGit = require('./dist/markgit-node.js');
 MarkGit.getList('username', 'reponame').then(data => console.log(data));
 ```
 
+#### ES6 Modules (import)
+```javascript
+// Use the Node.js ES6 module build
+import MarkGit from 'markgit';
+// or
+import MarkGit from './dist/markgit-node.esm.js';
+
+MarkGit.getList('username', 'reponame').then(data => console.log(data));
+```
+
+#### Named Imports
+```javascript
+// Import specific functions
+import { getList, getContent, createFile } from 'markgit';
+
+getList('username', 'reponame').then(data => console.log(data));
+getContent('username', 'reponame', 'README.md').then(data => console.log(data));
+```
+
 ### Build Files
 
-The library provides two builds:
-- **`markgit.js`** - Browser build (includes all dependencies, ~1MB)
-- **`markgit-node.js`** - Node.js build (external dependencies, ~6KB)
+The library provides four builds for maximum compatibility:
+
+#### Browser Builds
+- **`markgit.js`** - Browser UMD build (includes all dependencies, ~1MB)
+- **`markgit.esm.js`** - Browser ES6 module build (includes all dependencies, ~1MB)
+
+#### Node.js Builds
+- **`markgit-node.js`** - Node.js CommonJS build (external dependencies, ~6KB)
+- **`markgit-node.esm.js`** - Node.js ES6 module build (external dependencies, ~6KB)
 
 ### Environment Detection
 
