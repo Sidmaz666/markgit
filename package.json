@@ -1,7 +1,7 @@
 {
   "name": "markgit",
   "version": "1.0.3",
-  "description": "Use Github Repo as a Public Database to Store Markdown Files. Retrieve the Files in HTML Format. Get the List of Markdown Files From a Repo",
+  "description": "Use Github Repo as a Database to Store Markdown Files. Retrieve, Create, Update, and Delete Markdown Files and Folders. Get the List of Markdown Files From a Repo",
   "main": "./dist/markgit.js",
   "scripts": {
     "build:js": "tsc",
@@ -11,11 +11,18 @@
     "github",
     "markdown",
     "github database",
-    "markdown to html"
+    "markdown to html",
+    "github api",
+    "file management",
+    "create files",
+    "update files",
+    "delete files"
   ],
   "author": "Sidmaz666",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^24.3.1",
+    "typescript": "^5.9.2",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1"
   },

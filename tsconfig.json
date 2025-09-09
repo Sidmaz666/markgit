@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "watch": true,
     "lib": ["dom","ES2017"],
-    "outFile": "./build/main.js"
+    "outFile": "./build/main.js",
+    "moduleResolution": "node",
+    "skipLibCheck": true
   }
 }

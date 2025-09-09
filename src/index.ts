@@ -3,13 +3,15 @@ const axios = require("axios");
 async function getList(
   user_name: string,
   repo_name: string,
-  sub_folder:string = ''
+  sub_folder:string = '',
+  token?: string
 ): Promise<any[] | object> {
   let status: string = "true";
 
   try {
     const url = `https://api.github.com/repos/${user_name}/${repo_name}/contents/${sub_folder}`;
-    const fetch = await axios(url);
+    const headers = token ? { 'Authorization': `token ${token}` } : {};
+    const fetch = await axios(url, { headers });
     const data = await fetch.data;
     let returnData = [];
 
@@ -33,7 +35,8 @@ async function getList(
 async function getContent(
   user_name: string,
   repo_name: string,
-  file_path: string
+  file_path: string,
+  token?: string
 ): Promise<any> {
   let status: string = "true";
 
@@ -75,7 +78,8 @@ async function getContent(
     .use(require('markdown-it-footnote'))
 
     const url = `https://api.github.com/repos/${user_name}/${repo_name}/contents/${file_path}`;
-    const fetch = await axios(url);
+    const headers = token ? { 'Authorization': `token ${token}` } : {};
+    const fetch = await axios(url, { headers });
     const data = await fetch.data;
     const content = markdown_converter.render(
      atob(data.content)
@@ -92,7 +96,8 @@ async function getContent(
 async function search(
   keyword:string,
   user_name:string,
-  repo_name:string
+  repo_name:string,
+  token?: string
 ) : Promise<any>
 {
   let status:string = 'false'
@@ -104,7 +109,8 @@ async function search(
 
   try{
   const url = `https://api.github.com/search/code?q=${keyword}+repo:${user_name}/${repo_name}`
-  const fetch = await axios(url)
+  const headers = token ? { 'Authorization': `token ${token}` } : {};
+  const fetch = await axios(url, { headers })
   const data = await fetch.data
   const returnData = []
   const returnDataItems = []
@@ -137,8 +143,201 @@ async function search(
   };
 }
 
+async function createFile(
+  user_name: string,
+  repo_name: string,
+  file_path: string,
+  content: string,
+  token: string,
+  commit_message?: string
+): Promise<any> {
+  let status: string = "true";
+
+  if (!token) {
+    status = "false";
+    return { status: status, error: "Token is required for write operations" };
+  }
+
+  if (!/([a-zA-Z0-9\s_\\.\-:])+(.md)$/gi.test(file_path)) {
+    status = "false";
+    return { status: status, error: "Only .md files are supported" };
+  }
+
+  try {
+    const url = `https://api.github.com/repos/${user_name}/${repo_name}/contents/${file_path}`;
+    const headers = { 'Authorization': `token ${token}` };
+    
+    // Check if file already exists
+    let sha = null;
+    try {
+      const existingFile = await axios(url, { headers });
+      sha = existingFile.data.sha;
+    } catch (error) {
+      // File doesn't exist, which is fine for creation
+    }
+
+    const data = {
+      message: commit_message || `Create ${file_path}`,
+      content: btoa(content),
+      ...(sha && { sha: sha }) // Include sha if updating existing file
+    };
+
+    const response = await axios.put(url, data, { headers });
+    
+    status = "true";
+    return { 
+      status: status, 
+      message: sha ? "File updated successfully" : "File created successfully",
+      file: response.data.content
+    };
+  } catch (error: any) {
+    status = "false";
+    return { 
+      status: status, 
+      error: error.response?.data?.message || "Failed to create/update file" 
+    };
+  }
+}
+
+async function updateFile(
+  user_name: string,
+  repo_name: string,
+  file_path: string,
+  content: string,
+  token: string,
+  commit_message?: string
+): Promise<any> {
+  let status: string = "true";
+
+  if (!token) {
+    status = "false";
+    return { status: status, error: "Token is required for write operations" };
+  }
+
+  if (!/([a-zA-Z0-9\s_\\.\-:])+(.md)$/gi.test(file_path)) {
+    status = "false";
+    return { status: status, error: "Only .md files are supported" };
+  }
+
+  try {
+    const url = `https://api.github.com/repos/${user_name}/${repo_name}/contents/${file_path}`;
+    const headers = { 'Authorization': `token ${token}` };
+    
+    // Get existing file to get SHA
+    const existingFile = await axios(url, { headers });
+    const sha = existingFile.data.sha;
+
+    const data = {
+      message: commit_message || `Update ${file_path}`,
+      content: btoa(content),
+      sha: sha
+    };
+
+    const response = await axios.put(url, data, { headers });
+    
+    status = "true";
+    return { 
+      status: status, 
+      message: "File updated successfully",
+      file: response.data.content
+    };
+  } catch (error: any) {
+    status = "false";
+    return { 
+      status: status, 
+      error: error.response?.data?.message || "Failed to update file" 
+    };
+  }
+}
+
+async function deleteFile(
+  user_name: string,
+  repo_name: string,
+  file_path: string,
+  token: string,
+  commit_message?: string
+): Promise<any> {
+  let status: string = "true";
+
+  if (!token) {
+    status = "false";
+    return { status: status, error: "Token is required for write operations" };
+  }
+
+  try {
+    const url = `https://api.github.com/repos/${user_name}/${repo_name}/contents/${file_path}`;
+    const headers = { 'Authorization': `token ${token}` };
+    
+    // Get existing file to get SHA
+    const existingFile = await axios(url, { headers });
+    const sha = existingFile.data.sha;
+
+    const data = {
+      message: commit_message || `Delete ${file_path}`,
+      sha: sha
+    };
+
+    await axios.delete(url, { data, headers });
+    
+    status = "true";
+    return { 
+      status: status, 
+      message: "File deleted successfully"
+    };
+  } catch (error: any) {
+    status = "false";
+    return { 
+      status: status, 
+      error: error.response?.data?.message || "Failed to delete file" 
+    };
+  }
+}
+
+async function createFolder(
+  user_name: string,
+  repo_name: string,
+  folder_path: string,
+  token: string,
+  commit_message?: string
+): Promise<any> {
+  let status: string = "true";
+
+  if (!token) {
+    status = "false";
+    return { status: status, error: "Token is required for write operations" };
+  }
+
+  try {
+    // Create a .gitkeep file to create the folder
+    const file_path = folder_path.endsWith('/') ? `${folder_path}.gitkeep` : `${folder_path}/.gitkeep`;
+    const content = `# ${folder_path}\n\nThis folder was created using MarkGit.`;
+    
+    const result = await createFile(user_name, repo_name, file_path, content, token, commit_message || `Create folder ${folder_path}`);
+    
+    if (result.status === "true") {
+      return {
+        status: "true",
+        message: `Folder ${folder_path} created successfully`,
+        folder_path: folder_path
+      };
+    } else {
+      return result;
+    }
+  } catch (error: any) {
+    status = "false";
+    return { 
+      status: status, 
+      error: error.message || "Failed to create folder" 
+    };
+  }
+}
+
 module.exports = {
   getList,
   getContent,
-  search
+  search,
+  createFile,
+  updateFile,
+  deleteFile,
+  createFolder
 };

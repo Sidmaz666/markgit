@@ -5,15 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="./dist/markgit.js"></script>
   <script>
+    // Example with public repository
+    console.log('Testing public repository...');
     MarkGit.getList('sidmaz666','anime').then(
-	  data => console.log(data)
+	  data => console.log('Public repo list:', data)
 	)
     MarkGit.getContent('sidmaz666','anime','README.md').then(
-	  data => console.log(data)
+	  data => console.log('Public repo content:', data)
 	)
     MarkGit.search('anime','sidmaz666','anime').then(
-	  data => console.log(data)
+	  data => console.log('Public repo search:', data)
 	)
+
+    // Example with private repository and write operations (uncomment and add your token)
+    /*
+    const token = 'your_github_personal_access_token_here';
+    console.log('Testing private repository...');
+    
+    // Read operations
+    MarkGit.getList('username','private-repo','', token).then(
+	  data => console.log('Private repo list:', data)
+	)
+    MarkGit.getContent('username','private-repo','README.md', token).then(
+	  data => console.log('Private repo content:', data)
+	)
+    MarkGit.search('keyword','username','private-repo', token).then(
+	  data => console.log('Private repo search:', data)
+	)
+    
+    // Write operations
+    MarkGit.createFile('username','private-repo','test-file.md','# Test File\n\nThis is a test markdown file!', token).then(
+	  data => console.log('File created:', data)
+	)
+    MarkGit.createFolder('username','private-repo','test-folder', token).then(
+	  data => console.log('Folder created:', data)
+	)
+    MarkGit.updateFile('username','private-repo','test-file.md','# Updated Test File\n\nThis content has been updated!', token).then(
+	  data => console.log('File updated:', data)
+	)
+    MarkGit.deleteFile('username','private-repo','test-file.md', token).then(
+	  data => console.log('File deleted:', data)
+	)
+    */
   </script>
 </head>
 <body>
